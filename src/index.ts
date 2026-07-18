@@ -75,6 +75,7 @@ export default {
 		// the remote Durable Object instance.
 		const greeting = await stub.sayHello("world");
 
+		
 		return new Response(greeting);
 	},
 } satisfies ExportedHandler<Env>;
