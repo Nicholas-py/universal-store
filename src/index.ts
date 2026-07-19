@@ -34,7 +34,7 @@ export class UniversalStore extends DurableObject<Env> {
 	 * @returns The greeting to be sent back to the Worker
 	 */
 	async sayHello(name: string): Promise<string> {
-		if (name != "stored") {
+		if (name != "store") {
 			return `Hello, ${name}!`;
 		}
 		else {
@@ -42,13 +42,18 @@ export class UniversalStore extends DurableObject<Env> {
 		}
 	}
 
-	async getValue(key:string): Promise<unknown> {
-		let val = await this.ctx.storage.get(key);
+	async getFullStore(): Promise<string> {
+		let val = await this.ctx.storage.get("store_data") as string;
 		return val;
 	}
 
-	async setValue(key:string, value:string|number|boolean) {
-		await this.ctx.storage.put(key, value);
+	async setValues(vals:any) {
+		let internalstate = JSON.parse(await this.getFullStore());
+		Object.keys(vals).forEach( (key:string) => {
+			internalstate[key] = vals[key]
+		})
+		let internalstring = JSON.stringify(internalstate);
+		await this.ctx.storage.put("store_data",internalstring);
 	}
 }
 
@@ -67,15 +72,15 @@ export default {
 		//
 		// Requests from all Workers to the Durable Object instance named "foo"
 		// will go to a single remote Durable Object instance.
-		const stub = env.UNIVERSAL_STORE.getByName("foo");
+		const stub = env.UNIVERSAL_STORE.getByName("store");
 
 		
 
 		// Call the `sayHello()` RPC method on the stub to invoke the method on
 		// the remote Durable Object instance.
-		const greeting = await stub.sayHello("world");
+		const json = await stub.getFullStore();
 
 		
-		return new Response(greeting);
+		return new Response(json);
 	},
 } satisfies ExportedHandler<Env>;
