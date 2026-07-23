@@ -1,4 +1,4 @@
-import { DurableObject } from "cloudflare:workers";
+import { DurableObject, WorkerEntrypoint } from "cloudflare:workers";
 
 /**
  * Welcome to Cloudflare Workers! This is your first Durable Objects application.
@@ -57,7 +57,7 @@ export class UniversalStore extends DurableObject<Env> {
 	}
 }
 
-export default {
+export default class extends WorkerEntrypoint<Env> {
 	/**
 	 * This is the standard fetch handler for a Cloudflare Worker
 	 *
@@ -66,21 +66,22 @@ export default {
 	 * @param ctx - The execution context of the Worker
 	 * @returns The response to be sent back to the client
 	 */
-	async fetch(request, env, ctx): Promise<Response> {
-		// Create a stub to open a communication channel with the Durable Object
-		// instance named "foo".
-		//
-		// Requests from all Workers to the Durable Object instance named "foo"
-		// will go to a single remote Durable Object instance.
-		const stub = env.UNIVERSAL_STORE.getByName("store");
 
-		
+	private stub() {
+		return this.env.UNIVERSAL_STORE.getByName("store");
+	}
 
-		// Call the `sayHello()` RPC method on the stub to invoke the method on
-		// the remote Durable Object instance.
-		const json = await stub.getFullStore();
+	private getStore() {
+		return this.stub().getFullStore();
+	}
 
-		
-		return new Response(json);
-	},
-} satisfies ExportedHandler<Env>;
+	private setValues(vals:any) {
+		return this.stub().setValues(vals);
+	}
+
+	async fetch(request: Request): Promise<Response> {
+		const json = await this.stub().getFullStore();
+		return new Response(JSON.stringify(json));
+	}
+
+}
