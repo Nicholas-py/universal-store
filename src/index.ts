@@ -42,18 +42,22 @@ export class UniversalStore extends DurableObject<Env> {
 		}
 	}
 
-	async getFullStore(): Promise<string> {
-		let val = await this.ctx.storage.get("store_data") as string;
+
+	async getStore(key:string): Promise<string> {
+		let val = await this.ctx.storage.get(key) as string;
 		return val;
 	}
 
-	async setValues(vals:any) {
-		let internalstate = JSON.parse(await this.getFullStore());
+
+
+	async setValues(vals:Record<string, string>, key:string) {
+		const rawstate = await this.getStore(key);
+		let internalstate = rawstate ? JSON.parse(rawstate) : {};
 		Object.keys(vals).forEach( (key:string) => {
 			internalstate[key] = vals[key]
 		})
 		let internalstring = JSON.stringify(internalstate);
-		await this.ctx.storage.put("store_data",internalstring);
+		await this.ctx.storage.put(key,internalstring);
 	}
 }
 
@@ -71,17 +75,28 @@ export default class extends WorkerEntrypoint<Env> {
 		return this.env.UNIVERSAL_STORE.getByName("store");
 	}
 
-	private getStore() {
-		return this.stub().getFullStore();
+	private getFull() {
+		return this.stub().getStore("store_data");
 	}
 
-	private setValues(vals:any) {
-		return this.stub().setValues(vals);
+	private getMasterStore() {
+		return this.stub().getStore("master_data");
+
+	}
+
+	private setFull(vals:any) {
+		return this.stub().setValues(vals, "store_data");
+	}
+
+	private setMaster(vals:any) {
+		return this.stub().setValues(vals, "master_data");
+
 	}
 
 	async fetch(request: Request): Promise<Response> {
-		const json = await this.stub().getFullStore();
+		const json = await this.getFull();
 		return new Response(JSON.stringify(json));
 	}
+
 
 }
