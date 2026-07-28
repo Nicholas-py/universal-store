@@ -79,25 +79,25 @@ export default class extends WorkerEntrypoint<Env> {
 		return this.env.UNIVERSAL_STORE.getByName("store");
 	}
 
-	private getFull() {
+	public getFull() {
 		return this.stub().getStore("store_data");
 	}
 
-	private getMaster() {
+	public getMaster() {
 		return this.stub().getStore("master_data");
 
 	}
 
-	private setFull(vals: any) {
+	public setFull(vals: any) {
 		return this.stub().setValues(vals, "store_data");
 	}
 
-	private setMaster(vals: any) {
+	public setMaster(vals: any) {
 		return this.stub().setValues(vals, "master_data");
 
 	}
 
-	private reset() {
+	public reset() {
 		this.stub().reset("store_data");
 		this.stub().reset("master_data");
 	}
