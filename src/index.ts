@@ -79,27 +79,27 @@ export default class extends WorkerEntrypoint<Env> {
 		return this.env.UNIVERSAL_STORE.getByName("store");
 	}
 
-	public getFull() {
-		return this.stub().getStore("store_data");
+	public async getFull() {
+		return await this.stub().getStore("store_data");
 	}
 
-	public getMaster() {
-		return this.stub().getStore("master_data");
-
-	}
-
-	public setFull(vals: any) {
-		return this.stub().setValues(vals, "store_data");
-	}
-
-	public setMaster(vals: any) {
-		return this.stub().setValues(vals, "master_data");
+	public async getMaster() {
+		return await this.stub().getStore("master_data");
 
 	}
 
-	public reset() {
-		this.stub().reset("store_data");
-		this.stub().reset("master_data");
+	public async setFull(vals: any) {
+		await this.stub().setValues(vals, "store_data");
+	}
+
+	public async setMaster(vals: any) {
+		await this.stub().setValues(vals, "master_data");
+
+	}
+
+	public async reset() {
+		await this.stub().reset("store_data");
+		await this.stub().reset("master_data");
 	}
 
 	async fetch(request: Request): Promise<Response> {
