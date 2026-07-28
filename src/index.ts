@@ -43,21 +43,25 @@ export class UniversalStore extends DurableObject<Env> {
 	}
 
 
-	async getStore(key:string): Promise<string> {
+	async getStore(key: string): Promise<string> {
 		let val = await this.ctx.storage.get(key) as string;
 		return val;
 	}
 
 
 
-	async setValues(vals:Record<string, string>, key:string) {
+	async setValues(vals: Record<string, string>, key: string) {
 		const rawstate = await this.getStore(key);
 		let internalstate = rawstate ? JSON.parse(rawstate) : {};
-		Object.keys(vals).forEach( (key:string) => {
+		Object.keys(vals).forEach((key: string) => {
 			internalstate[key] = vals[key]
 		})
 		let internalstring = JSON.stringify(internalstate);
-		await this.ctx.storage.put(key,internalstring);
+		await this.ctx.storage.put(key, internalstring);
+	}
+
+	async reset(key:string) {
+		this.ctx.storage.put(key,"{}");
 	}
 }
 
@@ -79,18 +83,23 @@ export default class extends WorkerEntrypoint<Env> {
 		return this.stub().getStore("store_data");
 	}
 
-	private getMasterStore() {
+	private getMaster() {
 		return this.stub().getStore("master_data");
 
 	}
 
-	private setFull(vals:any) {
+	private setFull(vals: any) {
 		return this.stub().setValues(vals, "store_data");
 	}
 
-	private setMaster(vals:any) {
+	private setMaster(vals: any) {
 		return this.stub().setValues(vals, "master_data");
 
+	}
+
+	private reset() {
+		this.stub().reset("store_data");
+		this.stub().reset("master_data");
 	}
 
 	async fetch(request: Request): Promise<Response> {
