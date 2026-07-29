@@ -45,7 +45,7 @@ export class UniversalStore extends DurableObject<Env> {
 
 	async getStore(key: string): Promise<string> {
 		let val = await this.ctx.storage.get(key) as string;
-		return val;
+		return val || '{}';
 	}
 
 
